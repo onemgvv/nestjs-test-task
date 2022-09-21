@@ -44,6 +44,7 @@ import {
 } from '@nestjs/swagger';
 import UserService from "@domain/app/user/interface/service.interface";
 import CreatorModel from "@domain/app/tag/creator.model";
+import {IQuery} from "@common/interface/query.interface";
 
 const TagService = () => Inject(TAG_SERVICE);
 const UserService = () => Inject(USER_SERVICE);
@@ -106,8 +107,11 @@ export class TagController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @UseGuards(CustomAuthGuard)
-  async getSorted(@Query() query) {
-    return query;
+  async getSorted(@Query() query: IQuery) {
+    const tags = await this.tagService.getSorted(query);
+    const result = await Promise.all(tags.map(one => TagModel.toModel(one)));
+
+    return { data: result, "meta": { "offset": query.offset, length: query.length, quantity: tags.length } };
   }
 
   @ApiOperation({ summary: 'Обновить тэг' })

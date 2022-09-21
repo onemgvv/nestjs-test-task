@@ -6,6 +6,7 @@ import TagRepository from "@persistence/app/tag/interface/repository.interface";
 import {CreateTag} from "@domain/app/tag/interface/create.interface";
 import {UpdateTag} from "@domain/app/tag/interface/update.interface";
 import {Mapper} from "@utils/mapper.util";
+import {IQuery} from "@common/interface/query.interface";
 
 const TagRepo = () => Inject(TAG_REPOSITORY);
 
@@ -105,7 +106,18 @@ export class TagServiceImpl implements TagService {
         return this.tagRepository.findOne(id, { relations: ['user', 'users'] });
     }
 
-    getSorted(options: unknown): Promise<TagEntity[]> {
-        return Promise.resolve([]);
+    getSorted(options: IQuery): Promise<TagEntity[]> {
+        let order: any = {};
+        let pagination: any = {};
+
+        // Sort Params
+        if(options.sortByOrder === "") order.sortOrder = "ASC";
+        if(options.sortByName === "") order.name = "ASC";
+
+        // Pagination Params
+        if(options.length) pagination.skip = options.length;
+        if(options.offset) pagination.take = options.offset;
+
+        return this.tagRepository.find({ ...pagination, order, relations: ["user"]  });
     }
 }
