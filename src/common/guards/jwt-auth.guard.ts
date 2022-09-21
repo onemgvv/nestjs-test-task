@@ -20,6 +20,7 @@ import { Request } from 'express';
 import { ExtractJwt } from 'passport-jwt';
 import { TokenService } from '@domain/app/token/interface/service.interface';
 import UserService from "@domain/app/user/interface/service.interface";
+import UserModel from "@domain/app/user/user.model";
 
 const TokenService = () => Inject(TOKEN_SERVICE);
 const UserService = () => Inject(USER_SERVICE);
@@ -52,10 +53,7 @@ export class CustomAuthGuard extends AuthGuard('jwt') {
             if (!accessToken)
                 throw new UnauthorizedException(ACCESS_TOKEN_IS_NOT_SET);
 
-            const isValidAccessToken = await this.tokenService.validateToken(
-                accessToken,
-            );
-
+            const isValidAccessToken = this.tokenService.validateToken(accessToken);
             if (isValidAccessToken) return this.activate(context);
 
             const refreshToken = request.cookies[REFRESH_TOKEN_NAME];
@@ -63,17 +61,14 @@ export class CustomAuthGuard extends AuthGuard('jwt') {
                 throw new UnauthorizedException(REFRESH_TOKEN_IS_NOT_SET);
             }
 
-            const isValidRefreshToken = await this.tokenService.validateToken(
-                refreshToken,
-            );
-
+            const isValidRefreshToken = this.tokenService.validateToken(refreshToken);
             if (!isValidRefreshToken) {
                 throw new UnauthorizedException(REFRESH_TOKEN_IS_NOT_VALID);
             }
 
             const user = await this.userService.getByToken(refreshToken);
             const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-                await this.tokenService.createTokens(user);
+                this.tokenService.createTokens(UserModel.toModel(user));
 
             await this.tokenService.saveToken(user.id, newRefreshToken);
 
@@ -99,7 +94,7 @@ export class CustomAuthGuard extends AuthGuard('jwt') {
 
     handleRequest(err, user) {
         if (err || !user) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException("Доступно только авторизованным пользователям!");
         }
         return user;
     }

@@ -27,7 +27,7 @@ export class UserRepositoryImpl extends Repository<UserEntity> implements UserRe
      *
      */
     findById(id: string): Promise<UserEntity> {
-        return this.findOne({ where: { id } });
+        return this.findOne({ where: { id }, relations: ["tags"] });
     }
 
     /**
@@ -40,6 +40,6 @@ export class UserRepositoryImpl extends Repository<UserEntity> implements UserRe
      *
      */
     findByField(field: keyof UserEntity, value: any): Promise<UserEntity> {
-        return this.findOne({ where: { [field]: value } });
+        return this.findOne({ where: { [field]: value }, relations: ["tags"] });
     }
 }

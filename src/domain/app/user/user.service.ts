@@ -1,12 +1,12 @@
-import { compare } from 'bcrypt';
+import {compare, hash, hashSync} from 'bcrypt';
 import {Inject, Injectable} from "@nestjs/common";
 import UserService from "@domain/app/user/interface/service.interface";
-import UserModel from "@domain/app/user/user.model";
 import {ICreateUser} from "@domain/app/user/interface/create.interface";
 import {USER_REPOSITORY} from "@config/constants";
 import UserRepository from '@persistence/app/user/interface/repository.interface';
 import UserEntity from "@persistence/app/user/user.entity";
 import {IUpdateUser} from "@domain/app/user/interface/update.interface";
+import {Mapper} from "@utils/mapper.util";
 
 const UserRepo = () => Inject(USER_REPOSITORY);
 
@@ -20,13 +20,13 @@ export class UserServiceImpl implements UserService {
      *
      * Get all users
      *
-     * @return {Promise<UserModel[]>}
+     * @return {Promise<UserEntity[]>}
      */
-    async all(): Promise<UserModel[]> {
+    async all(): Promise<UserEntity[]> {
         const users = await this.userRepository.find();
         if(!users) return null;
 
-        return Promise.all(users.map(user => UserModel.toModel(user)));
+        return users;
     }
 
     /**
@@ -34,14 +34,14 @@ export class UserServiceImpl implements UserService {
      * Create new user & Save him in DB
      *
      * @param dto
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      *
      */
-    async create(dto: ICreateUser): Promise<UserModel> {
+    async create(dto: ICreateUser): Promise<UserEntity> {
         const token = await this.userRepository.save(dto);
         if(!token) return null;
 
-        return UserModel.toModel(token);
+        return token;
     }
 
     /**
@@ -50,15 +50,20 @@ export class UserServiceImpl implements UserService {
      *
      * @param {UserEntity} user
      * @param {IUpdateUser} dto
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      *
      */
     async update(user: UserEntity, dto: IUpdateUser): Promise<IUpdateUser> {
-        Object.keys(dto).filter(one => !!one).forEach(key => {
-            user[key] = dto[key];
+        Object.keys(Mapper.UpdateToDomain(dto)).forEach(key => {
+            if(key === "password") {
+                user[key] = hashSync(dto[key], 10);
+            } else {
+                user[key] = dto[key];
+            }
         });
 
          await user.save();
+         console.log(user);
          return { email: user.email, nickname: user.nickname }
     }
 
@@ -67,13 +72,13 @@ export class UserServiceImpl implements UserService {
      * Get user by Primary key (ID)
      *
      * @param id
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
-    async getById(id: string): Promise<UserModel> {
+    async getById(id: string): Promise<UserEntity> {
         const user = await this.userRepository.findById(id);
         if(!user) return null;
 
-        return UserModel.toModel(user);
+        return user;
     }
 
     /**
@@ -84,11 +89,11 @@ export class UserServiceImpl implements UserService {
      * @param value
      * @return {Promise<UserEntity>}
      */
-    async findOne(key: keyof UserEntity, value: any): Promise<UserModel> {
+    async findOne(key: keyof UserEntity, value: any): Promise<UserEntity> {
         const user = await this.userRepository.findByField(key, value);
         if(!user) return null;
 
-        return UserModel.toModel(user);
+        return user;
     }
 
     /**
@@ -109,13 +114,13 @@ export class UserServiceImpl implements UserService {
      * Get user by token
      *
      * @param token
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
-    async getByToken(token: string): Promise<UserModel> {
+    async getByToken(token: string): Promise<UserEntity> {
         const user = await this.userRepository.findByToken(token);
         if(!user) return null;
 
-        return UserModel.toModel(user);
+        return user;
     }
 
     /**
@@ -123,7 +128,7 @@ export class UserServiceImpl implements UserService {
      * Check email is busy
      *
      * @param {string} email
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
     async isBusyEmail(email: string): Promise<boolean> {
         return !!await this.userRepository.findOne({email});
@@ -134,9 +139,20 @@ export class UserServiceImpl implements UserService {
      * Check nickname is busy
      *
      * @param {string} nickname
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
     async isBusyNickname(nickname: string): Promise<boolean> {
         return !!await this.userRepository.findOne({nickname});
+    }
+
+    /**
+     *
+     * Delete user
+     *
+     * @param {string} id
+     * @return {Promise<boolean>}
+     */
+    async remove(id: string): Promise<boolean>{
+        return !!await this.userRepository.delete(id);
     }
 }

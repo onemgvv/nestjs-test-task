@@ -2,7 +2,7 @@ import {
     BaseEntity,
     Column,
     CreateDateColumn,
-    Entity, JoinColumn, JoinTable, ManyToMany,
+    Entity, JoinColumn, JoinTable, ManyToMany, OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
@@ -30,9 +30,16 @@ export default class UserEntity extends BaseEntity {
     @Column('varchar')
     password: string;
 
+    @OneToMany(
+        () => TagEntity,
+        (tag) => tag.user,
+    )
+    tag: TagEntity;
+
     @ManyToMany(
         () => TagEntity,
-        (tag) => tag.user
+        (tag) => tag.users,
+        { onDelete: "CASCADE" }
     )
     @JoinTable({
         name: 'user_tag'
@@ -41,7 +48,9 @@ export default class UserEntity extends BaseEntity {
 
     @OneToOne(
         () => TokenEntity,
-        (token) => token.user)
+        (token) => token.user,
+        { onDelete: "CASCADE" }
+    )
     @JoinColumn()
     token: TokenEntity;
 

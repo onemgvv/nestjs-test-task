@@ -8,6 +8,8 @@ export class RegisterDto {
         type: String,
         description: 'Nickanme',
         example: 'onemgvv',
+        maxLength: 30,
+        nullable: false,
     })
     @IsString()
     @MaxLength(30)
@@ -19,6 +21,8 @@ export class RegisterDto {
         type: String,
         description: 'Email',
         example: 'onemgvv@gmail.com',
+        maxLength: 100,
+        nullable: false,
     })
     @IsString()
     @MaxLength(100)
@@ -30,6 +34,8 @@ export class RegisterDto {
         type: String,
         description: 'Пароль',
         example: 'СуперСложныйПароль123',
+        maxLength: 100,
+        nullable: false,
     })
     @IsString()
     @MaxLength(100)

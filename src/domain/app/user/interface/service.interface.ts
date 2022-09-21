@@ -1,4 +1,3 @@
-import UserModel from "@domain/app/user/user.model";
 import {ICreateUser} from "@domain/app/user/interface/create.interface";
 import UserEntity from "@persistence/app/user/user.entity";
 import {IUpdateUser} from "@domain/app/user/interface/update.interface";
@@ -9,10 +8,10 @@ export default interface UserService {
      * Create new user & Save him in DB
      *
      * @param dto
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      *
      */
-    create(dto: ICreateUser): Promise<UserModel>;
+    create(dto: ICreateUser): Promise<UserEntity>;
 
     /**
      *
@@ -20,7 +19,7 @@ export default interface UserService {
      *
      * @param {UserEntity} user
      * @param {IUpdateUser} dto
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      *
      */
     update(user: UserEntity, dto: IUpdateUser): Promise<IUpdateUser>;
@@ -30,9 +29,9 @@ export default interface UserService {
      * Get user by Primary key (ID)
      *
      * @param id
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
-    getById(id: string): Promise<UserModel>;
+    getById(id: string): Promise<UserEntity>;
 
     /**
      *
@@ -42,24 +41,33 @@ export default interface UserService {
      * @param value
      * @return {Promise<UserEntity>}
      */
-    findOne(key: keyof UserEntity, value: any): Promise<UserModel>;
+    findOne(key: keyof UserEntity, value: any): Promise<UserEntity>;
 
     /**
      *
      * Get user by token
      *
      * @param token
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
-    getByToken(token: string): Promise<UserModel>;
+    getByToken(token: string): Promise<UserEntity>;
+
+    /**
+     *
+     * Delete user
+     *
+     * @param {string} id
+     * @return {Promise<boolean>}
+     */
+    remove(id: string): Promise<boolean>;
 
     /**
      *
      * Get all users
      *
-     * @return {Promise<UserModel[]>}
+     * @return {Promise<UserEntity[]>}
      */
-    all(): Promise<UserModel[]>;
+    all(): Promise<UserEntity[]>;
 
     /**
      *
@@ -76,7 +84,7 @@ export default interface UserService {
      * Check email is busy
      *
      * @param {string} email
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
     isBusyEmail(email: string): Promise<boolean>;
 
@@ -85,7 +93,7 @@ export default interface UserService {
      * Check nickname is busy
      *
      * @param {string} nickname
-     * @return {Promise<UserModel>}
+     * @return {Promise<UserEntity>}
      */
     isBusyNickname(nickname: string): Promise<boolean>;
 }

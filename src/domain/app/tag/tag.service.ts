@@ -5,6 +5,7 @@ import {TAG_REPOSITORY} from "@config/constants";
 import TagRepository from "@persistence/app/tag/interface/repository.interface";
 import {CreateTag} from "@domain/app/tag/interface/create.interface";
 import {UpdateTag} from "@domain/app/tag/interface/update.interface";
+import {Mapper} from "@utils/mapper.util";
 
 const TagRepo = () => Inject(TAG_REPOSITORY);
 
@@ -34,7 +35,7 @@ export class TagServiceImpl implements TagService {
      *
      */
     async update(tag: TagEntity, data: UpdateTag): Promise<UpdateTag> {
-        Object.keys(data).filter(key => !!key).forEach(key => {
+        Object.keys(Mapper.UpdateToDomain(data)).filter(key => !!key).forEach(key => {
             tag[key] = data[key];
         });
 
@@ -62,7 +63,7 @@ export class TagServiceImpl implements TagService {
      *
      */
     getByName(name: string): Promise<TagEntity> {
-        return this.tagRepository.findOne({ where: { name } });
+        return this.tagRepository.findOne({ where: { name }, relations: ['user', 'users'] });
     }
 
     /**
@@ -79,6 +80,21 @@ export class TagServiceImpl implements TagService {
 
     /**
      *
+     * Find Many Tags for Add to User
+     *
+     * @param {number} ids
+     * @returns {Promise<TagEntity[]>}
+     *
+     */
+    async findMany(ids: number[]): Promise<TagEntity[]> {
+        const tags = await this.tagRepository.findMany(ids);
+        if(tags.length === 0) return null;
+
+        return tags;
+    }
+
+    /**
+     *
      * Get tag by id
      *
      * @param {number} id
@@ -86,7 +102,7 @@ export class TagServiceImpl implements TagService {
      *
      */
     getById(id: number): Promise<TagEntity> {
-        return this.tagRepository.findOne(id);
+        return this.tagRepository.findOne(id, { relations: ['user', 'users'] });
     }
 
     getSorted(options: unknown): Promise<TagEntity[]> {

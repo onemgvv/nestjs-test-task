@@ -1,19 +1,19 @@
 import UserEntity from "@persistence/app/user/user.entity";
 
 export default class CreatorModel {
-    private _nickname: string;
-    private _uid: string;
+    private nickname: string;
+    private uid: string;
 
-    set nickname(value: string) { this._nickname = value; }
-    get nickname(): string { return this._nickname; }
+    set Nickname(value: string) { this.nickname = value; }
+    get Nickname(): string { return this.nickname; }
 
-    set uid(value: string) { this._uid = value; }
-    get uid(): string { return this._uid; }
+    set UId(value: string) { this.uid = value; }
+    get UId(): string { return this.uid; }
 
     static toModel(user: UserEntity) {
         const model = new CreatorModel();
-        model.nickname = user.nickname;
-        model.uid = user.id;
+        model.Nickname = user.nickname;
+        model.UId = user.id;
 
         return model;
     }

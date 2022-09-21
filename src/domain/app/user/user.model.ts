@@ -1,25 +1,25 @@
 import UserEntity from "@persistence/app/user/user.entity";
 
 export default class UserModel {
-    private _id: string;
-    private _nickname: string;
-    private _email: string;
+    private id: string;
+    private nickname: string;
+    private email: string;
 
 
-    get id(): string { return this._id; }
-    set id(value: string) { this._id = value; }
+    get Id(): string { return this.id; }
+    set Id(value: string) { this.id = value; }
 
-    get nickname(): string { return this._nickname; }
-    set nickname(value: string) { this._nickname = value; }
+    get Nickname(): string { return this.nickname; }
+    set Nickname(value: string) { this.nickname = value; }
 
-    get email(): string { return this._email; }
-    set email(value: string) { this._email = value; }
+    get Email(): string { return this.email; }
+    set Email(value: string) { this.email = value; }
 
     static toModel(user: UserEntity) {
         const model = new UserModel();
-        model.id = user.id;
-        model.nickname = user.nickname;
-        model.email = user.email;
+        model.Id = user.id;
+        model.Nickname = user.nickname;
+        model.Email = user.email;
         return model;
     }
 }

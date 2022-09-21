@@ -51,9 +51,9 @@ async function bootstrap() {
 
   // swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('Nestjs DDD Backend API Documentation')
+    .setTitle('Nestjs CRUD Backend API Documentation')
     .setDescription(
-      'Nestjs DDD Backend API  Documentation created with OpenAPI',
+      'Nestjs CRUD Backend API Documentation created with OpenAPI',
     )
     .setVersion('1.0')
     .addBearerAuth()

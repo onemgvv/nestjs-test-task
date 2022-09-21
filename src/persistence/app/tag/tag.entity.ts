@@ -2,7 +2,7 @@ import {
     BaseEntity,
     Column,
     CreateDateColumn,
-    Entity, JoinColumn, ManyToMany,
+    Entity, JoinColumn, ManyToMany, ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn
 } from "typeorm";
@@ -26,15 +26,21 @@ export class TagEntity extends BaseEntity {
     })
     sortOrder: number;
 
-    @ManyToMany(
+    @ManyToOne(
         () => UserEntity,
-        (user) => user.tags
+        (user) => user.tag
     )
     @JoinColumn({
         name: "creator",
         referencedColumnName: "id"
     })
     user: UserEntity;
+
+    @ManyToMany(
+        () => UserEntity,
+        (user) => user.tags
+    )
+    users: UserEntity[];
 
     @CreateDateColumn({
         type: 'timestamp',

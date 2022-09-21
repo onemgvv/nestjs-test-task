@@ -1,6 +1,7 @@
 import UserModel from "@domain/app/user/user.model";
 import Tokens from "./tokens.interface";
 import TokenModel from "@domain/app/token/token.model";
+import UserEntity from "@persistence/app/user/user.entity";
 
 export interface TokenService {
     /**
@@ -11,7 +12,7 @@ export interface TokenService {
      * @return Promise<UserModel>
      *
      */
-    validateToken(token: string): UserModel;
+    validateToken(token: string): UserEntity;
 
     /**
      *

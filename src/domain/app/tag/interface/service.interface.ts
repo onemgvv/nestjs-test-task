@@ -59,5 +59,15 @@ export interface TagService {
      */
     userTags(userId: string): Promise<TagEntity[]>;
 
+    /**
+     *
+     * Find Many Tags for Add to User
+     *
+     * @param {number} ids
+     * @returns {Promise<TagEntity[]>}
+     *
+     */
+    findMany(ids: number[]): Promise<TagEntity[]>
+
     getSorted(options: unknown): Promise<TagEntity[]>;
 }

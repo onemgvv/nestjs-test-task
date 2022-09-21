@@ -22,7 +22,8 @@ export class TokenEntity extends BaseEntity {
 
     @OneToOne(
         () => UserEntity,
-        user => user.token
+        user => user.token,
+        { onDelete: "CASCADE" }
     )
     @JoinColumn({ name: "userId", referencedColumnName: "id" })
     user: UserEntity;

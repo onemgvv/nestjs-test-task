@@ -1,4 +1,4 @@
-import {Body, Controller, HttpCode, Inject, Post, Res, UseInterceptors, UsePipes} from '@nestjs/common';
+import {Body, Controller, HttpCode, Inject, Post, Res} from '@nestjs/common';
 import {
     AUTH_SERVICE, AUTHORIZATION_EXCEPTION,
     SUCCESSFUL_AUTHORIZATION,
@@ -7,7 +7,7 @@ import {
     USER_NOT_FOUND
 } from "@config/constants";
 import { Response } from 'express';
-import AuthService from "@auth/interface/service.interface";
+import {AuthService} from "@auth/interface/service.interface";
 import {RegisterDto} from "@api/auth/dto/register.dto";
 import {LoginDto} from "@api/auth/dto/login.dto";
 import Tokens from "@domain/app/token/interface/tokens.interface";

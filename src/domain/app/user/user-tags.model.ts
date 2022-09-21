@@ -1,17 +1,12 @@
 import {TagEntity} from "@persistence/app/tag/tag.entity";
-import CreatorModel from "@domain/app/tag/creator.model";
 
-export default class TagModel {
+export default class UserTagsModel {
     private id: number;
-    private creator: CreatorModel;
     private name: string;
     private sortOrder: number;
 
-    set Id(value: number) { this.id = value; }
-    get Id(): number { return this.id; }
-
-    set Creator(value: CreatorModel) { this.creator = value; }
-    get Creator(): CreatorModel { return this.creator; }
+    set UId(value: number) { this.id = value; }
+    get UId(): number { return this.id; }
 
     set Name(value: string) { this.name = value; }
     get Name(): string { return this.name; }
@@ -20,9 +15,8 @@ export default class TagModel {
     get SortOrder(): number { return this.sortOrder; }
 
     static toModel(tag: TagEntity) {
-        const model = new TagModel();
-        model.Id = tag.id;
-        model.Creator = CreatorModel.toModel(tag.user);
+        const model = new UserTagsModel();
+        model.UId = tag.id;
         model.Name = tag.name;
         model.SortOrder = tag.sortOrder;
 
