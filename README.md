@@ -59,12 +59,18 @@ $ npm run test:cov
 ```
 
 ## Swagger
-```
-http{s}://${baseURl}/api/docs
+```bash
+# Documentation route
+http://{baseURl}/api/docs
+# On local machine in dev
+http://localhost:7000/api/docs
 ```
 
 ## Docker
-
+```bash
+$ docker build -t nestjs-task-test
+$ docker-compose up -d
+```
 
 ## Support
 
