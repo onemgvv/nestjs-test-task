@@ -65,3 +65,7 @@ export const USER_SERVICE = 'UserService';
 export const AUTH_SERVICE = 'AuthService';
 export const TOKEN_SERVICE = 'TokenService';
 export const TAG_SERVICE = 'TagService';
+
+export const CACHE_TAG_KEY = "Tag";
+export const CACHE_USER_KEY = "User";
+export const CACHE_TAGS_KEY = "SortedTag";

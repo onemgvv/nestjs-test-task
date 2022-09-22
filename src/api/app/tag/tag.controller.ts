@@ -1,6 +1,6 @@
 import {
   BadRequestException,
-  Body,
+  Body, CACHE_MANAGER,
   Controller,
   Delete,
   ForbiddenException,
@@ -16,6 +16,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  CACHE_TAG_KEY, CACHE_TAGS_KEY,
   TAG_CREATED,
   TAG_DATA_UPDATED,
   TAG_DELETE_NOT_ACCESS,
@@ -45,6 +46,8 @@ import {
 import UserService from "@domain/app/user/interface/service.interface";
 import CreatorModel from "@domain/app/tag/creator.model";
 import {IQuery} from "@common/interface/query.interface";
+import { Cache } from 'cache-manager';
+import {ITagResponse} from "@common/interface/api.interface";
 
 const TagService = () => Inject(TAG_SERVICE);
 const UserService = () => Inject(USER_SERVICE);
@@ -54,7 +57,8 @@ const UserService = () => Inject(USER_SERVICE);
 export class TagController {
   constructor(
       @TagService() private tagService: TagService,
-      @UserService() private userService: UserService
+      @UserService() private userService: UserService,
+      @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
   @ApiOperation({ summary: 'Создать тэг' })
@@ -86,18 +90,23 @@ export class TagController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(CustomAuthGuard)
   async getTagById(@Param('id') id: number) {
+    const cacheTag = await this.cacheManager.get<ITagResponse>(CACHE_TAG_KEY);
+    if(cacheTag) return cacheTag;
+
     const tag = await this.tagService.getById(id);
     if (!tag) {
       throw new NotFoundException(TAG_NOT_EXIST);
     }
 
     const tagModel = TagModel.toModel(tag);
-
-    return {
+    const response = {
       creator: tagModel.Creator,
       name: tagModel.Name,
       sortOrder: tagModel.SortOrder,
-    };
+    }
+
+    await this.cacheManager.set<ITagResponse>(CACHE_TAG_KEY, response);
+    return response;
   }
 
   @ApiOperation({ summary: 'Получить тэг по query запросу' })
@@ -108,10 +117,15 @@ export class TagController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(CustomAuthGuard)
   async getSorted(@Query() query: IQuery) {
+    const cache = await this.cacheManager.get(CACHE_TAGS_KEY);
+    if (cache) return cache;
+
     const tags = await this.tagService.getSorted(query);
     const result = await Promise.all(tags.map(one => TagModel.toModel(one)));
 
-    return { data: result, "meta": { "offset": query.offset, length: query.length, quantity: tags.length } };
+    const response = { data: result, "meta": { "offset": query.offset, length: query.length, quantity: tags.length } };
+    await this.cacheManager.set(CACHE_TAGS_KEY, response);
+    return response
   }
 
   @ApiOperation({ summary: 'Обновить тэг' })
@@ -138,9 +152,16 @@ export class TagController {
       throw new ForbiddenException(TAG_EDIT_NOT_ACCESS);
     }
 
+    const result = await this.tagService.update(tag, updateDto);
+    const cache = await this.cacheManager.get<ITagResponse>(CACHE_TAG_KEY);
+    if(cache && cache.name === tag.name) {
+      Object.keys(result).forEach(key => cache[key] = result[key]);
+      await this.cacheManager.set(CACHE_TAG_KEY, cache);
+    }
+
     return {
       creator: CreatorModel.toModel(tag.user),
-      ...await this.tagService.update(tag, updateDto)
+      ...result
     };
   }
 
@@ -161,6 +182,11 @@ export class TagController {
 
     if (tag.creator !== user.id) {
       throw new ForbiddenException(TAG_DELETE_NOT_ACCESS);
+    }
+
+    const cache = await this.cacheManager.get<ITagResponse>(CACHE_TAG_KEY);
+    if(cache && cache.name === tag.name) {
+      await this.cacheManager.del(CACHE_TAG_KEY);
     }
 
     await this.tagService.delete(tag);

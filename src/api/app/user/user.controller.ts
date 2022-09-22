@@ -1,6 +1,6 @@
 import {
     BadRequestException,
-    Body,
+    Body, CACHE_MANAGER,
     Controller,
     Delete,
     Get,
@@ -8,11 +8,12 @@ import {
     HttpStatus,
     Inject, Param, Post,
     Put,
-    UseGuards
+    UseGuards,
 } from '@nestjs/common';
 import {CurrentUser} from "@decorators/current-user.decortor";
 import UserEntity from "@persistence/app/user/user.entity";
 import {
+    CACHE_USER_KEY,
     EMAIL_IS_BUSY, NICKNAME_IS_BUSY,
     SUCCESSFUL_UPDATE, SUCCESSFUL_USER_DELETE,
     TAG_FOUNDED, TAG_SERVICE, UNAUTHORIZED_EXCEPTION,
@@ -26,6 +27,9 @@ import {CustomAuthGuard} from "@common/guards/jwt-auth.guard";
 import {AddTagsDto} from "@api/app/user/dto/add-tags.dto";
 import UserTagsModel from "@domain/app/user/user-tags.model";
 import {ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {Cache} from "cache-manager";
+import {IUserResponse} from "@common/interface/api.interface";
+import TagModel from "@domain/app/tag/tag.model";
 
 const UserService = () => Inject(USER_SERVICE);
 const TagService = () => Inject(TAG_SERVICE);
@@ -36,6 +40,7 @@ export class UserController {
     constructor(
         @UserService() private userService: UserService,
         @TagService() private tagService: TagService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
     @ApiOperation({ summary: "Получить авторизованного пользователя" })
@@ -45,13 +50,18 @@ export class UserController {
     @UseGuards(CustomAuthGuard)
     @HttpCode(HttpStatus.OK)
     async find(@CurrentUser() user: UserEntity) {
+        const cache = await this.cacheManager.get<IUserResponse>(CACHE_USER_KEY)
+        if(cache) return cache;
+
         const tags = [];
         const actual = await this.userService.getById(user.id);
         actual.tags.map(one => {
             tags.push(UserTagsModel.toModel(one));
         })
 
-        return { email: user.email, nickname: user.nickname, tags }
+        const response = { email: user.email, nickname: user.nickname, tags };
+        await this.cacheManager.set<IUserResponse>(CACHE_USER_KEY, response);
+        return response;
     }
 
     @ApiOperation({ summary: "Обновить данные пользователя" })
@@ -72,7 +82,16 @@ export class UserController {
             throw new BadRequestException(NICKNAME_IS_BUSY);
         }
 
-        return this.userService.update(user, updateDto);
+        const result = await this.userService.update(user, updateDto);
+
+        const cache = await this.cacheManager.get<IUserResponse>(CACHE_USER_KEY);
+        if(cache && cache.email === user.email) {
+            cache.email = result.email;
+            cache.nickname = result.nickname;
+            await this.cacheManager.set(CACHE_USER_KEY, cache);
+        }
+
+        return result;
     }
 
     @ApiOperation({ summary: "Удаление пользователя" })
@@ -82,6 +101,11 @@ export class UserController {
     @UseGuards(CustomAuthGuard)
     @HttpCode(HttpStatus.OK)
     async delete(@CurrentUser() user: UserEntity) {
+        const cache = await this.cacheManager.get<IUserResponse>(CACHE_USER_KEY);
+        if(cache && cache.email === user.email) {
+            await this.cacheManager.del(CACHE_USER_KEY);
+        }
+
         return { status: !!await user.remove() };
     }
 
@@ -102,6 +126,8 @@ export class UserController {
 
         user.tags = [...user.tags, ...fResult];
         await user.save();
+        await this.updateCache(user);
+
         return { tags: user.tags }
     }
 
@@ -117,6 +143,7 @@ export class UserController {
 
         user.tags = actual.tags.filter(one => one.id !== id);
         await user.save();
+        await this.updateCache(user);
         return { tags: user.tags }
     }
 
@@ -133,6 +160,14 @@ export class UserController {
             tags: await Promise.all(tags.map(one => {
                 return UserTagsModel.toModel(one);
             }))
+        }
+    }
+
+    private async updateCache(user: UserEntity) {
+        const cache = await this.cacheManager.get<IUserResponse>(CACHE_USER_KEY);
+        if(cache && cache.email === user.email) {
+            cache.tags = await Promise.all(user.tags.map(one => TagModel.toModel(one)));
+            await this.cacheManager.set(CACHE_USER_KEY, cache);
         }
     }
 }
