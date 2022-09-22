@@ -1,13 +1,15 @@
-version: "3.8"
+version: "3.3"
 services:
   api:
     image: nestjs-test-task:latest
     container_name: nestjs-test-task
     restart: always
+    env_file:
+      - .env.prod
+    networks:
+      - fullnet
     ports:
       - "5005:7000"
-    volumes:
-      - ./.env.prod:/opt/app/.env.prod
     depends_on:
       - postgres
 
@@ -15,15 +17,24 @@ services:
     container_name: nest_postgres
     image: postgres:alpine
     restart: always
+    networks:
+      - fullnet
     ports:
-      - "5432:5432"
+      - "5435:5432"
     env_file:
       - .env.prod
     environment:
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: "trust"
     volumes:
       - nestjs-postgres:/var/lib/postgresql/data
 volumes:
   nestjs-postgres:
+
+networks:
+  fullnet:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
