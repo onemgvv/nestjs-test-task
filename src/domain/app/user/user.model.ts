@@ -5,7 +5,6 @@ export default class UserModel {
     private nickname: string;
     private email: string;
 
-
     get Id(): string { return this.id; }
     set Id(value: string) { this.id = value; }
 

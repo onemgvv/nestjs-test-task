@@ -21,7 +21,7 @@ export class PostgresConfig {
       migrations: [join(process.cwd(), "dist", "database", "migrations", "*.{js,ts}")],
       cli: {
         migrationsDir: join(process.cwd(), "src", "database", "migrations"),
-      },
+      }
     };
   }
 }
@@ -30,7 +30,12 @@ export const postgresDbConfigAsync: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
   useFactory: async (
     configService: ConfigService,
-  ): Promise<TypeOrmModuleOptions> =>
-    PostgresConfig.getOrmConfig(configService),
+  ): Promise<TypeOrmModuleOptions> => {
+    return {
+      ...PostgresConfig.getOrmConfig(configService),
+      keepConnectionAlive: true,
+      autoLoadEntities: true,
+    }
+  },
   inject: [ConfigService],
 };

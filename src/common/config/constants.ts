@@ -27,7 +27,7 @@ export const SUCCESSFUL_AUTHORIZATION = 'Вы успешно авторизов�
  */
 export const USER_NOT_FOUND = 'Пользователь не найден';
 export const USER_ALREADY_EXISTS = 'Пользователь с таким адресом уже есть в системе';
-export const USERNAME_EXIST = 'Nickname {username} занят';
+export const USERNAME_EXIST = 'Nickname {nickname} занят';
 
 export const TAG_EXIST = "Тэг с таким название уже существует";
 export const TAG_CREATED = "Тэг создан";
